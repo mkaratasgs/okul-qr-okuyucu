@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Yemek Takip – QR Okuyucu</title>
+<style>body{font-family:system-ui,Arial,sans-serif;max-width:520px;margin:24px auto;padding:0 16px;color:#182333}h1{font-size:1.5rem}button{border:0;border-radius:9px;background:#146c43;color:white;padding:12px 15px;margin:6px 5px 6px 0;font-size:1rem;cursor:pointer}button:disabled{opacity:.45}#reader{margin:15px 0}#result{width:100%;box-sizing:border-box;padding:12px;font-size:1rem}#status{padding:9px 0;white-space:pre-wrap}.note{color:#555;font-size:.93rem}</style>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script></head>
+<body><h1>Öğrenci QR Okuyucu</h1><p>Öğrenci kartındaki QR kodunu okutun. Kod yalnızca bu ekranda gösterilir; öğrenci bilgileri bu sayfaya aktarılmaz.</p>
+<button id="start" type="button">Kamerayı aç</button><button id="stop" type="button" disabled>Kamerayı kapat</button>
+<div id="reader"></div><label for="result">Okunan QR kodu</label><input id="result" type="text" readonly placeholder="Henüz kod okunmadı"><button id="copy" type="button" disabled>Kodu kopyala</button><p id="status" role="status"></p><p class="note">Kodu kopyaladıktan sonra yemek takip uygulamasına dönün. Öğrenci Ara → QR Okut ekranındaki “QR kodunu yapıştırın” alanına yapıştırıp “QR ile Öğrenci Bul” düğmesine basın.</p>
+<script>
+(()=>{'use strict';let scanner=null, busy=false;const $=id=>document.getElementById(id), status=msg=>$('status').textContent=msg;
+async function stop(){if(!scanner)return;const current=scanner;scanner=null;try{if(current.isScanning)await current.stop();}catch(e){}try{current.clear();}catch(e){}$('start').disabled=false;$('stop').disabled=true;}
+$('start').addEventListener('click',async()=>{if(busy||scanner)return;busy=true;$('start').disabled=true;status('Kamera açılıyor…');try{if(!window.isSecureContext)throw new Error('Sayfa HTTPS üzerinden açılmalıdır.');if(typeof Html5Qrcode==='undefined')throw new Error('QR okuyucu kütüphanesi yüklenemedi. İnternet bağlantısını kontrol edin.');scanner=new Html5Qrcode('reader');await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:220,height:220}},async code=>{if(!$('copy').disabled)return;$('result').value=code;$('copy').disabled=false;status('QR okundu. Kodu kopyalayın.');await stop();},()=>{});$('stop').disabled=false;status('QR kodunu kameraya gösterin.');}catch(e){status('Kamera açılamadı: '+(e&&e.message||e)+'\nBu sayfayı yayımlanmış HTTPS adresinde, tarayıcıda doğrudan açın ve kamera izni verin.');await stop();}finally{busy=false;}});
+$('stop').addEventListener('click',()=>{stop();status('Kamera kapatıldı.');});
+$('copy').addEventListener('click',async()=>{const value=$('result').value;if(!value)return;try{await navigator.clipboard.writeText(value);status('Kod kopyalandı. Yemek takip uygulamasına dönüp yapıştırın.');}catch(e){$('result').focus();$('result').select();status('Otomatik kopyalama engellendi. Seçili kodu Ctrl+C (telefonda Kopyala) ile kopyalayın.');}});
+})();
+</script></body></html>

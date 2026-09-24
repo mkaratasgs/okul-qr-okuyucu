@@ -1,1 +1,40 @@
 
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sekme Ana Testi</title>
+</head>
+<body>
+  <h2>Ana Test Sayfası</h2>
+  <p id="durum">Henüz mesaj alınmadı.</p>
+  <button id="ac">Test sekmesini aç</button>
+
+  <script>
+    const testAdresi =
+      "https://mkaratasgs.github.io/okul-qr-okuyucu/sekme-test.html";
+
+    let testPenceresi = null;
+
+    document.getElementById("ac").addEventListener("click", function () {
+      testPenceresi = window.open(testAdresi, "okulSekmeTesti");
+
+      document.getElementById("durum").textContent =
+        testPenceresi
+          ? "Test sekmesi açıldı. Oradaki düğmeye basın."
+          : "Test sekmesi açılamadı.";
+    });
+
+    window.addEventListener("message", function (event) {
+      if (event.origin !== "https://mkaratasgs.github.io") return;
+      if (event.source !== testPenceresi) return;
+
+      if (!event.data || event.data.type !== "OKUL_SEKME_TEST") return;
+
+      document.getElementById("durum").textContent =
+        "BAŞARILI: Test sekmesinden mesaj alındı.";
+    });
+  </script>
+</body>
+</html>

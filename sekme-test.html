@@ -1,1 +1,31 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sekme İletişim Testi</title>
+</head>
+<body>
+  <h2>Sekme İletişim Testi</h2>
+  <p id="durum">Henüz mesaj gönderilmedi.</p>
+  <button id="gonder">Test mesajı gönder</button>
 
+  <script>
+    document.getElementById("gonder").addEventListener("click", function () {
+      if (!window.opener || window.opener.closed) {
+        document.getElementById("durum").textContent =
+          "Bu sekmenin bağlı olduğu bir açılış penceresi bulunamadı.";
+        return;
+      }
+
+      window.opener.postMessage(
+        { type: "OKUL_SEKME_TEST", mesaj: "Test mesajı" },
+        "*"
+      );
+
+      document.getElementById("durum").textContent =
+        "Test mesajı gönderilmeye çalışıldı; ulaştığı henüz doğrulanmadı.";
+    });
+  </script>
+</body>
+</html>

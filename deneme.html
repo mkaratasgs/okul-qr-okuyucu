@@ -7,7 +7,23 @@
 <div id="reader"></div><label for="result">Okunan QR kodu</label><input id="result" type="text" readonly placeholder="Henüz kod okunmadı"><button id="return" type="button" disabled>Öğrenciyi uygulamada aç</button><button id="copy" type="button" disabled>Kodu kopyala</button><p id="status" role="status"></p><p class="note">Otomatik dönüş çalışmazsa kodu kopyalayıp yemek takip uygulamasındaki QR alanına yapıştırabilirsiniz.</p>
 <script>
 (()=>{'use strict';let scanner=null,busy=false,completed=false;const $=id=>document.getElementById(id),status=msg=>$('status').textContent=msg;
-const params=new URLSearchParams(location.search),returnUrl=params.get('return')||'';
+const params = new URLSearchParams(location.search);
+const returnUrl = params.get('return') || '';
+const popupMode = params.get('mode') === 'popup';
+
+function sendQrToApp(code) {
+  if (!popupMode || !window.opener || window.opener.closed) {
+    return false;
+  }
+
+  window.opener.postMessage(
+    { type: 'OKUL_QR_OKUNDU', code: code },
+    '*'
+  );
+
+  status('QR kodu açık yemekhane uygulamasına gönderildi.');
+  return true;
+}
 function validReturn(value){try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='script.google.com'&&/^\/macros\/s\/[^/]+\/exec$/.test(u.pathname)&&!u.username&&!u.password;}catch(e){return false;}}
 async function stop(){if(!scanner)return;const current=scanner;scanner=null;try{if(current.isScanning)await current.stop();}catch(e){}try{current.clear();}catch(e){}$('start').disabled=false;$('stop').disabled=true;}
 function goBack(){const code=$('result').value;if(!code)return;if(!validReturn(returnUrl)){status('Geri dönüş adresi geçersiz. Kodu kopyalayıp uygulamaya yapıştırın.');return;}const url=new URL(returnUrl);url.searchParams.set('qr',code);location.assign(url.toString());}

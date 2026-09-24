@@ -27,7 +27,15 @@ function sendQrToApp(code) {
 function validReturn(value){try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='script.google.com'&&/^\/macros\/s\/[^/]+\/exec$/.test(u.pathname)&&!u.username&&!u.password;}catch(e){return false;}}
 async function stop(){if(!scanner)return;const current=scanner;scanner=null;try{if(current.isScanning)await current.stop();}catch(e){}try{current.clear();}catch(e){}$('start').disabled=false;$('stop').disabled=true;}
 function goBack(){const code=$('result').value;if(!code)return;if(!validReturn(returnUrl)){status('Geri dönüş adresi geçersiz. Kodu kopyalayıp uygulamaya yapıştırın.');return;}const url=new URL(returnUrl);url.searchParams.set('qr',code);location.assign(url.toString());}
-$('start').addEventListener('click',async()=>{if(busy||scanner)return;busy=true;completed=false;$('result').value='';$('copy').disabled=true;$('return').disabled=true;$('start').disabled=true;status('Kamera açılıyor…');try{if(!window.isSecureContext)throw new Error('Sayfa HTTPS üzerinden açılmalıdır.');if(typeof Html5Qrcode==='undefined')throw new Error('QR okuyucu kütüphanesi yüklenemedi.');scanner=new Html5Qrcode('reader');await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:220,height:220}},async code=>{if(completed)return;completed=true;$('result').value=code;$('copy').disabled=false;$('return').disabled=!validReturn(returnUrl);status('QR okundu. Uygulamaya dönülüyor…');await stop();if(validReturn(returnUrl))goBack();else status('QR okundu. Kodu kopyalayıp uygulamaya yapıştırın.');},()=>{});if(scanner){$('stop').disabled=false;status('QR kodunu kameraya gösterin.');}}catch(e){status('Kamera açılamadı: '+(e&&e.message||e)+'\nHTTPS adresinde açın ve kamera izni verin.');await stop();}finally{busy=false;}});
+$('start').addEventListener('click',async()=>{if(busy||scanner)return;busy=true;completed=false;$('result').value='';$('copy').disabled=true;$('return').disabled=true;$('start').disabled=true;status('Kamera açılıyor…');try{if(!window.isSecureContext)throw new Error('Sayfa HTTPS üzerinden açılmalıdır.');if(typeof Html5Qrcode==='undefined')throw new Error('QR okuyucu kütüphanesi yüklenemedi.');scanner=new Html5Qrcode('reader');await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:220,height:220}},async code=>{if(completed)return;completed=true;$('result').value=code;$('copy').disabled=false;$('return').disabled=!validReturn(returnUrl);status('QR okundu. Uygulamaya dönülüyor…');await stop();
+
+if (sendQrToApp(code)) {
+  status('QR kodu yemekhane uygulamasına gönderildi. Uygulama sekmesine dönün.');
+} else if (validReturn(returnUrl)) {
+  goBack();
+} else {
+  status('QR okundu. Kodu kopyalayıp uygulamaya yapıştırın.');
+}},()=>{});if(scanner){$('stop').disabled=false;status('QR kodunu kameraya gösterin.');}}catch(e){status('Kamera açılamadı: '+(e&&e.message||e)+'\nHTTPS adresinde açın ve kamera izni verin.');await stop();}finally{busy=false;}});
 $('stop').addEventListener('click',()=>{stop();status('Kamera kapatıldı.');});$('return').addEventListener('click',goBack);
 $('copy').addEventListener('click',async()=>{const value=$('result').value;if(!value)return;try{await navigator.clipboard.writeText(value);status('Kod kopyalandı.');}catch(e){$('result').focus();$('result').select();status('Seçili kodu elle kopyalayın.');}});
 })();
